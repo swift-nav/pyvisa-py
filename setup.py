@@ -33,7 +33,7 @@ requirements = ['pyvisa>=1.8']
 if sys.version_info < (2, 7):
     requirements.append('importlib')
 
-setup(name='PyVISA-py',
+setup(name='py-pyvisa-py',
       description='Python VISA bindings for GPIB, RS232, and USB instruments',
       version='0.3.dev0',
       long_description=long_description,
@@ -41,7 +41,7 @@ setup(name='PyVISA-py',
       author_email='hernan.grecco@gmail.com',
       maintainer='Hernan E. Grecco',
       maintainer_email='hernan.grecco@gmail.com',
-      url='https://github.com/hgrecco/pyvisa-py',
+      url='https://github.com/swift-nav/pyvisa-py',
       test_suite='pyvisa-py.testsuite.testsuite',
       keywords='Remote VISA GPIB USB serial RS232 measurement acquisition',
       license='MIT License',
