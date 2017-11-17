@@ -33,7 +33,7 @@ requirements = ['pyvisa>=1.8']
 if sys.version_info < (2, 7):
     requirements.append('importlib')
 
-setup(name='py-pyvisa-py',
+setup(name='PyVISA-py',
       description='Python VISA bindings for GPIB, RS232, and USB instruments',
       version='0.3.dev0',
       long_description=long_description,
