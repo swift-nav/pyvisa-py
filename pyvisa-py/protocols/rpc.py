@@ -294,8 +294,13 @@ def sendfrag(sock, last, frag):
 
 
 def sendrecord(sock, record):
-    logger.debug('Sending record through %s: %r', sock, record)
+    # bb temporary
+    # logger.debug('Sending record through %s: %r', sock, record)
     sendfrag(sock, 1, record)
+
+
+def bytestohex(data):
+    return "".join(map(lambda x: "{:02X}".format(ord(x)), data))
 
 
 def recvfrag(sock):
@@ -305,10 +310,18 @@ def recvfrag(sock):
     x = struct.unpack(">I", header[0:4])[0]
     last = ((x & 0x80000000) != 0)
     n = int(x & 0x7fffffff)
+    orig_n = n
     frag = b''
     while n > 0:
         buf = sock.recv(n)
         if not buf:
+            import traceback
+            logger.error("Incomplete fragment encountered in recvfrag. Expected %d bytes, got %d bytes." % (orig_n, orig_n-n))
+            logger.error("header:   " + bytestohex(header))
+            logger.error("fragment: " + bytestohex(frag))
+            logger.error("Stack trace...")
+            for line in traceback.format_stack():
+                logger.error(line.strip())
             raise EOFError
         n -= len(buf)
         frag += buf
