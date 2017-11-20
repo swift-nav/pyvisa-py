@@ -304,25 +304,27 @@ def bytestohex(data):
     return "".join(map(lambda x: "{:02X}".format(ord(x)), data))
 
 
+def _recvfrag(sock):
+    header = sock.recv(4)
+    if len(header) < 4:
+        raise EOFError
+    x = struct.unpack(">I", header[0:4])[0]
+    last = ((x & 0x80000000) != 0)
+    n = int(x & 0x7fffffff)
+    orig_n = n
+    frag = b''
+    while n > 0:
+        buf = sock.recv(n)
+        if not buf:
+            raise EOFError
+        n -= len(buf)
+        frag += buf
+
+    return last, frag
+
 def recvfrag(sock):
     try:
-        header = sock.recv(4)
-        if len(header) < 4:
-            raise EOFError
-        x = struct.unpack(">I", header[0:4])[0]
-        last = ((x & 0x80000000) != 0)
-        n = int(x & 0x7fffffff)
-        orig_n = n
-        frag = b''
-        while n > 0:
-            buf = sock.recv(n)
-            if not buf:
-                raise EOFError
-            n -= len(buf)
-            frag += buf
-
-        return last, frag
-
+        return _recvfrag(sock)
     except EOFError:
 
         logger.error("Incomplete data encountered in recvfrag. Expected %d bytes, got %d bytes." % (orig_n, orig_n-n))
