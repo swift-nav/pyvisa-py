@@ -305,36 +305,39 @@ def bytestohex(data):
 
 
 def recvfrag(sock):
-    try:
-        header = sock.recv(4)
-        if len(header) < 4:
-            raise EOFError
-        x = struct.unpack(">I", header[0:4])[0]
-        last = ((x & 0x80000000) != 0)
-        n = int(x & 0x7fffffff)
-        orig_n = n
-        frag = b''
-        while n > 0:
-            buf = sock.recv(n)
-            if not buf:
-                raise EOFError
-            n -= len(buf)
-            frag += buf
-
-        return last, frag
-
-    except EOFError:
-
-        logger.error("Incomplete data encountered in recvfrag. Expected %d bytes, got %d bytes." % (orig_n, orig_n-n))
+    header = sock.recv(4)
+    if len(header) < 4:
+        logger.error("Incomplete header encountered in recvfrag. Expected 4 bytes, got %d bytes." % len(header))
         logger.error("header:   " + bytestohex(header))
-        logger.error("fragment: " + bytestohex(frag))
         logger.error("Stack trace:")
         for line in traceback.format_stack():
             logger.error(line.strip())
         logger.error("Exception:")
         for line in traceback.format_exc():
             logger.error(line.strip())
-        raise
+        raise EOFError
+    x = struct.unpack(">I", header[0:4])[0]
+    last = ((x & 0x80000000) != 0)
+    n = int(x & 0x7fffffff)
+    orig_n = n
+    frag = b''
+    while n > 0:
+        buf = sock.recv(n)
+        if not buf:
+            logger.error("Incomplete data encountered in recvfrag. Expected %d bytes, got %d bytes." % (orig_n, orig_n-n))
+            logger.error("header:   " + bytestohex(header))
+            logger.error("fragment: " + bytestohex(frag))
+            logger.error("Stack trace:")
+            for line in traceback.format_stack():
+                logger.error(line.strip())
+            logger.error("Exception:")
+            for line in traceback.format_exc():
+                logger.error(line.strip())
+            raise EOFError
+        n -= len(buf)
+        frag += buf
+
+    return last, frag
 
 
 def recvrecord(sock):
