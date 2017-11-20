@@ -332,7 +332,7 @@ def recvfrag(sock):
         for line in traceback.format_stack():
             logger.error(line.strip())
         logger.error("Exception:")
-        for line in traceback.format_exec():
+        for line in traceback.format_exc():
             logger.error(line.strip())
         raise
 
