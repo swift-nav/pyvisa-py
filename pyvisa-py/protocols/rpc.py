@@ -29,6 +29,7 @@ import enum
 import xdrlib
 import socket
 import select
+import traceback
 
 from pyvisa.compat import struct
 
@@ -304,29 +305,36 @@ def bytestohex(data):
 
 
 def recvfrag(sock):
-    header = sock.recv(4)
-    if len(header) < 4:
-        raise EOFError
-    x = struct.unpack(">I", header[0:4])[0]
-    last = ((x & 0x80000000) != 0)
-    n = int(x & 0x7fffffff)
-    orig_n = n
-    frag = b''
-    while n > 0:
-        buf = sock.recv(n)
-        if not buf:
-            import traceback
-            logger.error("Incomplete fragment encountered in recvfrag. Expected %d bytes, got %d bytes." % (orig_n, orig_n-n))
-            logger.error("header:   " + bytestohex(header))
-            logger.error("fragment: " + bytestohex(frag))
-            logger.error("Stack trace...")
-            for line in traceback.format_stack():
-                logger.error(line.strip())
+    try:
+        header = sock.recv(4)
+        if len(header) < 4:
             raise EOFError
-        n -= len(buf)
-        frag += buf
+        x = struct.unpack(">I", header[0:4])[0]
+        last = ((x & 0x80000000) != 0)
+        n = int(x & 0x7fffffff)
+        orig_n = n
+        frag = b''
+        while n > 0:
+            buf = sock.recv(n)
+            if not buf:
+                raise EOFError
+            n -= len(buf)
+            frag += buf
 
-    return last, frag
+        return last, frag
+
+    except EOFError:
+
+        logger.error("Incomplete data encountered in recvfrag. Expected %d bytes, got %d bytes." % (orig_n, orig_n-n))
+        logger.error("header:   " + bytestohex(header))
+        logger.error("fragment: " + bytestohex(frag))
+        logger.error("Stack trace:")
+        for line in traceback.format_stack():
+            logger.error(line.strip())
+        logger.error("Exception:")
+        for line in traceback.format_exec():
+            logger.error(line.strip())
+        raise
 
 
 def recvrecord(sock):
