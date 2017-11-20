@@ -312,9 +312,6 @@ def recvfrag(sock):
         logger.error("Stack trace:")
         for line in traceback.format_stack():
             logger.error(line.strip())
-        logger.error("Exception:")
-        for line in traceback.format_exc():
-            logger.error(line.strip())
         raise EOFError
     x = struct.unpack(">I", header[0:4])[0]
     last = ((x & 0x80000000) != 0)
@@ -329,9 +326,6 @@ def recvfrag(sock):
             logger.error("fragment: " + bytestohex(frag))
             logger.error("Stack trace:")
             for line in traceback.format_stack():
-                logger.error(line.strip())
-            logger.error("Exception:")
-            for line in traceback.format_exc():
                 logger.error(line.strip())
             raise EOFError
         n -= len(buf)
