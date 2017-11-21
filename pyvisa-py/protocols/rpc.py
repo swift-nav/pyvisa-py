@@ -295,8 +295,7 @@ def sendfrag(sock, last, frag):
 
 
 def sendrecord(sock, record):
-    # bb temporary
-    # logger.debug('Sending record through %s: %r', sock, record)
+    logger.debug('Sending record through %s: %r', sock, record)
     sendfrag(sock, 1, record)
 
 
